@@ -72,8 +72,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     public void onMapReady(GoogleMap googleMap) {
         map = googleMap;
-
-        LatLng coffeeLocation = new LatLng(37.423, -122.084);
+//43.01552185352375, -81.21208351519495
+        LatLng coffeeLocation = new LatLng(43.01353466038684, -81.19944909985036);
         MarkerOptions coffeeMarker = new MarkerOptions()
                 .position(coffeeLocation)
                 .title("Coffee Store")
