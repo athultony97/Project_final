@@ -1,12 +1,15 @@
 package com.example.project_final;
 
+import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.location.Location;
+import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 
 import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
 import android.view.LayoutInflater;
@@ -25,6 +28,29 @@ public class LocationFragment extends Fragment {
     private TextView latT;
     private TextView longT;
     private Button displayButton;
+    private static final String ARG_LATITUDE = "latitude";
+    private static final String ARG_LONGITUDE = "longitude";
+
+    private double mLatitude;
+    private double mLongitude;
+
+    public static LocationFragment newInstance(double latitude, double longitude) {
+        LocationFragment fragment = new LocationFragment();
+        Bundle args = new Bundle();
+        args.putDouble(ARG_LATITUDE, latitude);
+        args.putDouble(ARG_LONGITUDE, longitude);
+        fragment.setArguments(args);
+        return fragment;
+    }
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        if (getArguments() != null) {
+            mLatitude = getArguments().getDouble(ARG_LATITUDE);
+            mLongitude = getArguments().getDouble(ARG_LONGITUDE);
+        }
+    }
 
     @Nullable
     @Override
@@ -37,6 +63,7 @@ public class LocationFragment extends Fragment {
         displayButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
                 dd();
 
             }
@@ -46,6 +73,8 @@ public class LocationFragment extends Fragment {
     }
 
     private void dd() {
+        latT.setText("");
+        longT.setText("");
         LocationManager locationManager = (LocationManager) getActivity().getSystemService(Context.LOCATION_SERVICE);
         if (ActivityCompat.checkSelfPermission(getContext(), android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getContext(), android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
 
@@ -53,14 +82,46 @@ public class LocationFragment extends Fragment {
         }
         Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
 
+
         if (location != null) {
-            latT.setText("Latitude:"+String.valueOf(location.getLatitude()));
-            longT.setText("Longtitude:"+String.valueOf(location.getLongitude()));
+            latT.setText(String.valueOf(mLatitude));
+            longT.setText(String.valueOf(mLongitude));
         } else {
             Toast.makeText(getActivity(), "Unable to retrieve location", Toast.LENGTH_SHORT).show();
         }
+    /*    LocationManager locationManager = (LocationManager) getActivity().getSystemService(Context.LOCATION_SERVICE);
+        if (ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getActivity(), Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+
+            return;
+        }
+        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, new LocationListener() {
+            @Override
+            public void onLocationChanged(Location location) {
+                if (location != null) {
+                    latT.setText(String.valueOf(location.getLatitude()));
+                    longT.setText(String.valueOf(location.getLongitude()));
+                } else {
+                    Toast.makeText(getActivity(), "Unable to retrieve location", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onStatusChanged(String provider, int status, Bundle extras) {
+            }
+
+            @Override
+            public void onProviderEnabled(String provider) {
+            }
+
+            @Override
+            public void onProviderDisabled(String provider) {
+            }
+        });
+
+*/
 
     }
-
-
 }
+
+
+

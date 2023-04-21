@@ -1,5 +1,7 @@
 package com.example.project_final;
 
+import android.Manifest;
+import android.content.Context;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.location.LocationListener;
@@ -8,9 +10,17 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.Button;
+import android.widget.LinearLayout;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentTransaction;
 
 import com.example.project_final.databinding.ActivityMapsBinding;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -23,12 +33,17 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.OnMapClickListener, GoogleMap.OnMarkerClickListener{
+public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback, GoogleMap.OnMapClickListener, GoogleMap.OnMarkerClickListener {
 
     private GoogleMap map;
     private ActivityMapsBinding binding;
     private BitmapDescriptor coffeeIcon;
-    private Location currentLocation;
+    MarkerOptions marker;
+    Marker newMarker;
+    LinearLayout layout;
+    View fragment;
+    Button disp;
+    TextView lat, longi;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,7 +54,63 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
-        coffeeIcon = BitmapDescriptorFactory.fromResource(R.drawable.adj);
+        layout = findViewById(R.id.two);
+        fragment = findViewById(R.id.fragment_location_info);
+        disp = findViewById(R.id.display_button_m);
+        lat = findViewById(R.id.latitude_text_view_m);
+        longi = findViewById(R.id.longitude_text_view_m);
+        coffeeIcon = BitmapDescriptorFactory.fromResource(R.drawable.location);
+        disp.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                dd();
+            }
+        });
+    }
+
+    private void dd() {
+        LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+
+            return;
+        }
+        Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+        if (location != null) {
+            lat.setText(String.valueOf(location.getLatitude()));
+            longi.setText(String.valueOf(location.getLongitude()));
+        } else {
+            Toast.makeText(this, "Unable to retrieve location", Toast.LENGTH_SHORT).show();
+        }
+       /* LocationManager locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+
+            return;
+        }
+        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, new LocationListener() {
+            @Override
+            public void onLocationChanged(Location location) {
+                if (location != null) {
+                    lat.setText(String.valueOf(location.getLatitude()));
+                    longi.setText(String.valueOf(location.getLongitude()));
+                } else {
+                    Toast.makeText(MapsActivity.this, "Unable to retrieve location", Toast.LENGTH_SHORT).show();
+                }
+
+            }
+
+            @Override
+            public void onStatusChanged(String provider, int status, Bundle extras) {
+            }
+
+            @Override
+            public void onProviderEnabled(String provider) {
+            }
+
+            @Override
+            public void onProviderDisabled(String provider) {
+            }
+        });
+*/
     }
 
     @Override
@@ -69,10 +140,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         return super.onOptionsItemSelected(item);
     }
+
     @Override
     public void onMapReady(GoogleMap googleMap) {
         map = googleMap;
-//43.01552185352375, -81.21208351519495
         LatLng coffeeLocation = new LatLng(43.01353466038684, -81.19944909985036);
         MarkerOptions coffeeMarker = new MarkerOptions()
                 .position(coffeeLocation)
@@ -81,7 +152,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         map.addMarker(coffeeMarker);
 
         LatLng yourLn = new LatLng(43.0207985560236, -81.20654778178458);
-        MarkerOptions marker = new MarkerOptions()
+        marker = new MarkerOptions()
                 .position(yourLn)
                 .title("Tony Location");
         map.addMarker(marker);
@@ -91,9 +162,22 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         map.setOnMapClickListener(this);
         map.setOnMarkerClickListener(this);
     }
+
     @Override
     public void onMapClick(LatLng latLng) {
-        map.addMarker(new MarkerOptions().position(latLng).title("New Marker"));
+        if (newMarker != null) {
+            newMarker.remove();
+        }
+        newMarker = map.addMarker(new MarkerOptions()
+                .position(latLng)
+                .title("New Location"));
+        double lat = newMarker.getPosition().latitude;
+        double lng = newMarker.getPosition().longitude;
+        layout.setVisibility(View.GONE);
+        fragment.setVisibility(View.VISIBLE);
+        LocationFragment locationFragment = LocationFragment.newInstance(lat, lng);
+        getSupportFragmentManager().beginTransaction().replace(R.id.fragment_location_info, locationFragment).commit();
+
     }
 
     @Override
@@ -103,9 +187,6 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         marker.showInfoWindow();
         return true;
     }
-
-
-
 
 
 }
